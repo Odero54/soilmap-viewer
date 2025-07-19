@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "metadata": {
+    "appmode": "shiny",
+    "primary_rmd": null,
+    "primary_html": null,
+    "content_category": null,
+    "has_parameters": false
+  },
+  "packages": {
+    "cran": ["shiny", "leaflet", "terra", "sf", "dplyr"],
+    "github": [],
+    "bioconductor": []
+  },
+  "files": ["app.R", "data/"]
+}
