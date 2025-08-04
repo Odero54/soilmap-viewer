@@ -16,10 +16,11 @@ soil_samples <- st_read("data/sierra_leone_soil_data.shp")
 
 # Define custom fertility-aware palettes
 soil_palettes <- list(
-  "phosphorus" = colorRampPalette(c("#d73027", "#fee08b", "#1a9850")),  # red → yellow → green
-  "pH"         = colorRampPalette(c("#4575b4", "#ffffbf", "#a50026")),  # blue → yellow → red
-  "nitrogen"   = colorRampPalette(c("#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f")),  # light orange → red
-  "potassium"  = colorRampPalette(c("#ffffcc", "#a1dab4", "#41b6c4", "#225ea8"))   # yellow → teal
+  "phosphorus" = colorRampPalette(c("#d73027", "#fee08b", "#1a9850")),             # red → yellow → green
+  "pH"         = colorRampPalette(c("#4575b4", "#ffffbf", "#a50026")),             # blue → yellow → red
+  "nitrogen"   = colorRampPalette(c("#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f")),   # light orange → red
+  "potassium"  = colorRampPalette(c("#ffffcc", "#a1dab4", "#41b6c4", "#225ea8")),   # yellow → teal 
+  "carbon"     = colorRampPalette(c("#d9f0a3", "#addd8e", "#78c679", "#31a354", "#006837"))  # light → dark green
 )
 
 # Legend titles
@@ -27,15 +28,17 @@ legend_titles <- list(
   "phosphorus" = "Phosphorus (mg/kg)",
   "pH"         = "Soil pH",
   "nitrogen"   = "Nitrogen (%)",
-  "potassium"  = "Potassium (mg/kg)"
+  "potassium"  = "Potassium (mg/kg)",
+  "carbon"     = "Carbon (%)"
 )
 
 # RMSE table
 rmse_values <- list(
-  phosphorus = 6.60,
-  pH = 0.22,
-  nitrogen = 0.04,
-  potassium = 12.69
+  phosphorus = 9.762,
+  pH = 0.432,
+  nitrogen = 0.050,
+  potassium = 21.285,
+  carbon = 1.412
 )
 
 # Importance statements
@@ -43,7 +46,9 @@ importance_statements <- list(
   phosphorus = "Phosphorus is essential for root development and crop maturity.",
   pH = "Soil pH controls nutrient availability and microbial activity.",
   nitrogen = "Nitrogen promotes leafy growth and overall productivity.",
-  potassium = "Potassium enhances disease resistance and water regulation."
+  potassium = "Potassium enhances disease resistance and water regulation.",
+  carbon = "Soil Carbon enhances water retention, nutrient availability, and Soil Structure. 
+  It also contributes to climate change mitigation by acting as a carbon sink."
 )
 
 # UI
@@ -61,17 +66,19 @@ ui <- fluidPage(
       tags$hr(),
       tags$h4("📈 Model Performance (RMSE)"),
       tags$ul(
-        tags$li("Phosphorus: 6.60"),
-        tags$li("pH: 0.22"),
-        tags$li("Nitrogen: 0.04"),
-        tags$li("Potassium: 12.69")
+        tags$li("Phosphorus: 9.762"),
+        tags$li("pH: 0.432"),
+        tags$li("Nitrogen: 0.050"),
+        tags$li("Potassium: 21.285"),
+        tags$li("Carbon: 1.412")
       ),
       tags$hr(),
       tags$h4("🧠 Importance of Soil Layers"),
-      tags$p("Phosphorus: Essential for root development and crop maturity."),
-      tags$p("pH: Controls nutrient availability and microbial activity."),
-      tags$p("Nitrogen: Promotes leafy growth and crop productivity."),
-      tags$p("Potassium: Enhances disease resistance and water regulation.")
+      tags$p(importance_statements$phosphorus),
+      tags$p(importance_statements$pH),
+      tags$p(importance_statements$nitrogen),
+      tags$p(importance_statements$potassium),
+      tags$p(importance_statements$carbon)
     ),
     
     mainPanel(
