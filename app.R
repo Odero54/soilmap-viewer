@@ -9,24 +9,26 @@ raster_files <- list.files(
   "data",
   pattern = "_prediction.tif$", full.names = TRUE
 )
-names(raster_files) <- gsub("_prediction.tif", "", basename(raster_files))
+
+# Normalize names to lowercase
+names(raster_files) <- tolower(gsub("_prediction.tif", "", basename(raster_files)))
 
 # Load soil samples
 soil_samples <- st_read("data/sierra_leone_soil_data.shp")
 
 # Define custom fertility-aware palettes
 soil_palettes <- list(
-  "phosphorus" = colorRampPalette(c("#d73027", "#fee08b", "#1a9850")),             # red → yellow → green
-  "pH"         = colorRampPalette(c("#4575b4", "#ffffbf", "#a50026")),             # blue → yellow → red
-  "nitrogen"   = colorRampPalette(c("#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f")),   # light orange → red
-  "potassium"  = colorRampPalette(c("#ffffcc", "#a1dab4", "#41b6c4", "#225ea8")),   # yellow → teal 
-  "carbon"     = colorRampPalette(c("#d9f0a3", "#addd8e", "#78c679", "#31a354", "#006837"))  # green scale
+  "phosphorus" = colorRampPalette(c("#d73027", "#fee08b", "#1a9850")),
+  "ph"         = colorRampPalette(c("#4575b4", "#ffffbf", "#a50026")),
+  "nitrogen"   = colorRampPalette(c("#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f")),
+  "potassium"  = colorRampPalette(c("#ffffcc", "#a1dab4", "#41b6c4", "#225ea8")),
+  "carbon"     = colorRampPalette(c("#d9f0a3", "#addd8e", "#78c679", "#31a354", "#006837"))
 )
 
 # Legend titles
 legend_titles <- list(
   "phosphorus" = "Phosphorus (mg/kg)",
-  "pH"         = "Soil pH",
+  "ph"         = "Soil pH",
   "nitrogen"   = "Nitrogen (%)",
   "potassium"  = "Potassium (mg/kg)",
   "carbon"     = "Carbon (%)"
@@ -35,7 +37,7 @@ legend_titles <- list(
 # RMSE table
 rmse_values <- list(
   phosphorus = 9.762,
-  pH = 0.432,
+  ph = 0.432,
   nitrogen = 0.050,
   potassium = 21.285,
   carbon = 1.412
@@ -44,7 +46,7 @@ rmse_values <- list(
 # Importance statements
 importance_statements <- list(
   phosphorus = "Phosphorus is essential for root development and crop maturity.",
-  pH = "Soil pH controls nutrient availability and microbial activity.",
+  ph = "Soil pH controls nutrient availability and microbial activity.",
   nitrogen = "Nitrogen promotes leafy growth and overall productivity.",
   potassium = "Potassium enhances disease resistance and water regulation.",
   carbon = "Soil Carbon enhances water retention, nutrient availability, and Soil Structure. 
@@ -75,7 +77,7 @@ ui <- fluidPage(
       tags$hr(),
       tags$h4("🧠 Importance of Soil Layers"),
       tags$p(importance_statements$phosphorus),
-      tags$p(importance_statements$pH),
+      tags$p(importance_statements$ph),
       tags$p(importance_statements$nitrogen),
       tags$p(importance_statements$potassium),
       tags$p(importance_statements$carbon)
@@ -106,39 +108,41 @@ server <- function(input, output, session) {
   })
   
   selected_palette <- reactive({
-    pal_func <- soil_palettes[[input$soil_var]]
+    var_name <- tolower(input$soil_var)
+    pal_func <- soil_palettes[[var_name]]
     if (is.null(pal_func)) {
-      showNotification("Palette not defined for selected soil variable.", type = "error")
-      return(c("grey90", "grey10"))
+      showNotification(paste("Palette not defined for", input$soil_var), type = "error")
+      return(NULL)
     }
     pal_colors <- pal_func(100)
     if (length(pal_colors) == 0) {
-      showNotification("Palette returned no colors. Using default grey scale.", type = "error")
-      return(c("grey90", "grey10"))
+      showNotification(paste("Palette returned no colors for", input$soil_var), type = "error")
+      return(NULL)
     }
     pal_colors
   })
   
   nice_title <- reactive({
-    legend_titles[[input$soil_var]] %||% input$soil_var
+    legend_titles[[tolower(input$soil_var)]] %||% input$soil_var
   })
   
   output$map <- renderLeaflet({
     r <- selected_raster()
-    req(r)
-    
-    # Reproject points if needed
-    if (!st_crs(soil_samples) == crs(r)) {
-      samples_trans <- st_transform(soil_samples, crs(r))
-    } else {
-      samples_trans <- soil_samples
-    }
+    pal_colors <- selected_palette()
+    req(r, pal_colors)
     
     vals <- values(r)
     vals <- vals[!is.na(vals)]
     if (length(vals) == 0) return(NULL)
     
-    pal <- colorNumeric(palette = selected_palette(), domain = vals, na.color = "transparent")
+    pal <- colorNumeric(palette = pal_colors, domain = vals, na.color = "transparent")
+    
+    # Reproject points if needed
+    samples_trans <- if (!st_crs(soil_samples) == crs(r)) {
+      st_transform(soil_samples, crs(r))
+    } else {
+      soil_samples
+    }
     
     leaflet() %>%
       addProviderTiles(input$basemap, group = "Basemap") %>%
@@ -166,7 +170,8 @@ server <- function(input, output, session) {
   
   output$hist <- renderPlot({
     r <- selected_raster()
-    req(r)
+    pal_colors <- selected_palette()
+    req(r, pal_colors)
     
     vals <- values(r)
     vals <- vals[!is.na(vals)]
@@ -176,7 +181,7 @@ server <- function(input, output, session) {
          breaks = 30,
          main = paste("Distribution of", nice_title()),
          xlab = nice_title(),
-         col = "#66c2a5",
+         col = pal_colors[50],  # Use middle color for bars
          border = "white")
   })
   
