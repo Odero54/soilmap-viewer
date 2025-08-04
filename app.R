@@ -20,7 +20,7 @@ soil_palettes <- list(
   "pH"         = colorRampPalette(c("#4575b4", "#ffffbf", "#a50026")),             # blue → yellow → red
   "nitrogen"   = colorRampPalette(c("#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f")),   # light orange → red
   "potassium"  = colorRampPalette(c("#ffffcc", "#a1dab4", "#41b6c4", "#225ea8")),   # yellow → teal 
-  "carbon"     = colorRampPalette(c("#d9f0a3", "#addd8e", "#78c679", "#31a354", "#006837"))  # light → dark green
+  "carbon"     = colorRampPalette(c("#d9f0a3", "#addd8e", "#78c679", "#31a354", "#006837"))  # green scale
 )
 
 # Legend titles
@@ -96,12 +96,27 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   selected_raster <- reactive({
-    rast(raster_files[[input$soil_var]])
+    r <- rast(raster_files[[input$soil_var]])
+    valid_vals <- values(r)
+    if (all(is.na(valid_vals))) {
+      showNotification(paste("Selected raster for", input$soil_var, "has no valid values."), type = "error")
+      return(NULL)
+    }
+    r
   })
   
   selected_palette <- reactive({
     pal_func <- soil_palettes[[input$soil_var]]
-    if (is.null(pal_func)) colorRampPalette(c("grey90", "grey10")) else pal_func(100)
+    if (is.null(pal_func)) {
+      showNotification("Palette not defined for selected soil variable.", type = "error")
+      return(c("grey90", "grey10"))
+    }
+    pal_colors <- pal_func(100)
+    if (length(pal_colors) == 0) {
+      showNotification("Palette returned no colors. Using default grey scale.", type = "error")
+      return(c("grey90", "grey10"))
+    }
+    pal_colors
   })
   
   nice_title <- reactive({
@@ -110,6 +125,7 @@ server <- function(input, output, session) {
   
   output$map <- renderLeaflet({
     r <- selected_raster()
+    req(r)
     
     # Reproject points if needed
     if (!st_crs(soil_samples) == crs(r)) {
@@ -118,9 +134,10 @@ server <- function(input, output, session) {
       samples_trans <- soil_samples
     }
     
-    # Prepare color mapping
     vals <- values(r)
     vals <- vals[!is.na(vals)]
+    if (length(vals) == 0) return(NULL)
+    
     pal <- colorNumeric(palette = selected_palette(), domain = vals, na.color = "transparent")
     
     leaflet() %>%
@@ -149,8 +166,11 @@ server <- function(input, output, session) {
   
   output$hist <- renderPlot({
     r <- selected_raster()
+    req(r)
+    
     vals <- values(r)
     vals <- vals[!is.na(vals)]
+    if (length(vals) == 0) return()
     
     hist(vals,
          breaks = 30,
@@ -162,8 +182,11 @@ server <- function(input, output, session) {
   
   output$stats <- renderPrint({
     r <- selected_raster()
+    req(r)
+    
     vals <- values(r)
     vals <- vals[!is.na(vals)]
+    if (length(vals) == 0) return("No valid data in selected raster.")
     summary(vals)
   })
 }
