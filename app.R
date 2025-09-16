@@ -55,7 +55,7 @@ importance_statements <- list(
 
 # UI
 ui <- fluidPage(
-  titlePanel("🧪 Soil Fertility Map Viewer"),
+  titlePanel("Soil Fertility Map Viewer"),
   
   sidebarLayout(
     sidebarPanel(
@@ -66,7 +66,7 @@ ui <- fluidPage(
                               "Satellite" = "Esri.WorldImagery",
                               "OpenStreetMap" = "OpenStreetMap")),
       tags$hr(),
-      tags$h4("📈 Model Performance (RMSE)"),
+      tags$h4("Model Performance (RMSE)"),
       tags$ul(
         tags$li("Phosphorus: 9.762"),
         tags$li("pH: 0.432"),
@@ -75,7 +75,7 @@ ui <- fluidPage(
         tags$li("Carbon: 1.412")
       ),
       tags$hr(),
-      tags$h4("🧠 Importance of Soil Layers"),
+      tags$h4("Importance of Soil Layers"),
       tags$p(importance_statements$phosphorus),
       tags$p(importance_statements$ph),
       tags$p(importance_statements$nitrogen),
@@ -85,8 +85,8 @@ ui <- fluidPage(
     
     mainPanel(
       tabsetPanel(
-        tabPanel("🗺️ Map", leafletOutput("map", height = 400)),
-        tabPanel("📊 Histogram", plotOutput("hist", height = 400))
+        tabPanel(" Map", leafletOutput("map", height = 400)),
+        tabPanel("Histogram", plotOutput("hist", height = 400))
       ),
       br(),
       verbatimTextOutput("stats")
