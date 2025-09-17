@@ -36,11 +36,11 @@ legend_titles <- list(
 
 # RMSE table
 rmse_values <- list(
-  phosphorus = 9.762,
-  ph = 0.432,
+  phosphorus = 8.21,
+  ph = 0.64,
   nitrogen = 0.050,
-  potassium = 21.285,
-  carbon = 1.412
+  potassium = 27.81,
+  carbon = 2.15
 )
 
 # Importance statements
@@ -68,11 +68,11 @@ ui <- fluidPage(
       tags$hr(),
       tags$h4("Model Performance (RMSE)"),
       tags$ul(
-        tags$li("Phosphorus: 9.762"),
-        tags$li("pH: 0.432"),
+        tags$li("Phosphorus: 8.21"),
+        tags$li("pH: 0.64"),
         tags$li("Nitrogen: 0.050"),
-        tags$li("Potassium: 21.285"),
-        tags$li("Carbon: 1.412")
+        tags$li("Potassium: 27.81"),
+        tags$li("Carbon: 2.15")
       ),
       tags$hr(),
       tags$h4("Importance of Soil Layers"),
